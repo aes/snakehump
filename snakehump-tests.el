@@ -1,39 +1,32 @@
 (ert-deftest snakehump--split-names-t ()
-  (should (equal (snakehump--split-name "foo_bar_baz") '("foo" "bar" "baz")))
-  (should (equal (snakehump--split-name "foo-bar-baz") '("foo" "bar" "baz")))
-  (should (equal (snakehump--split-name "fooBarBaz") '("foo" "bar" "baz")))
-  (should (equal (snakehump--split-name "FooBarBaz") '("foo" "bar" "baz")))
-  (should (equal (snakehump--split-name "Foo::Bar::Baz") '("foo" "bar" "baz")))
-)
+  (let ((expected '("foo" "bar" "baz")))
+    (dolist (string '("foo_bar_baz" "foo-bar-baz" "fooBarBaz"
+		      "FooBarBaz" "Foo::Bar::Baz"))
+      (should (equal (snakehump--split-name string) expected)) )))
 
 ;;; Formats
 (ert-deftest snakehump-drom-t ()
   (should (equal (snakehump-drom "foo-bar-baz") "fooBarBaz"))
-  (should (equal (snakehump-drom "foo-bar")     "fooBar"))
   (should (equal (snakehump-drom "foo")         "foo"))
 )
 
 (ert-deftest snakehump-camel-t ()
   (should (equal (snakehump-camel "foo-bar-baz") "FooBarBaz"))
-  (should (equal (snakehump-camel "foo-bar")     "FooBar"))
   (should (equal (snakehump-camel "foo")         "Foo"))
 )
 
 (ert-deftest snakehump-snake-t ()
   (should (equal (snakehump-snake "foo-bar-baz") "foo_bar_baz"))
-  (should (equal (snakehump-snake "foo-bar")     "foo_bar"))
   (should (equal (snakehump-snake "foo")         "foo"))
 )
 
 (ert-deftest snakehump-dash-t ()
   (should (equal (snakehump-dash "foo-bar-baz") "foo-bar-baz"))
-  (should (equal (snakehump-dash "foo-bar")     "foo-bar"))
   (should (equal (snakehump-dash "foo")         "foo"))
 )
 
 (ert-deftest snakehump-colon-t ()
   (should (equal (snakehump-colon "foo-bar-baz") "Foo::Bar::Baz"))
-  (should (equal (snakehump-colon "foo-bar")     "Foo::Bar"))
   (should (equal (snakehump-colon "foo")         "Foo"))
 )
 
