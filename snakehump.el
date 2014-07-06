@@ -5,7 +5,7 @@
 ;; Author: Anders Eurenius <aes@spotify.com>
 ;; Created: 2014-07-05
 ;; Keywords: formatting camelcase snakecase
-;; Version: 0.1.0
+;; Version: 0.1.1
 
 ;; This file is not part of GNU Emacs.
 
