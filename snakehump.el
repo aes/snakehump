@@ -33,79 +33,46 @@
 
 
 ;;; Formatting functions
-(defun snakehump-dromcase (compound-word)
+(defmacro snakehump--fmt (name up sep)
+  `(defun ,(intern (concat "snakehump-" (symbol-name name)))
+       (compound-word)
+     ,(concat "Format compound word with " (symbol-name name))
+     (mapconcat
+      ',(if up 'capitalize 'downcase)
+      (snakehump--split-name compound-word) ,sep)))
+
+(snakehump--fmt camel t   "")
+(snakehump--fmt snake nil "_")
+(snakehump--fmt dash  nil "-")
+(snakehump--fmt colon t   "::")
+
+(defun snakehump-drom (compound-word)
   "Format compound word like CamelCase but with leading-lowercase"
   (let ((frags (snakehump--split-name compound-word)))
     (concat (downcase (car frags))
             (mapconcat 'capitalize (cdr frags) ""))))
 
-(defun snakehump-camelcase (compound-word)
-  "Format compound word with CamelCase"
-  (mapconcat 'capitalize (snakehump--split-name compound-word) ""))
-
-(defun snakehump-snakecase (compound-word)
-  "Format compound word with snake_case"
-  (mapconcat 'downcase (snakehump--split-name compound-word) "_"))
-
-(defun snakehump-dasherize (compound-word)
-  "Format compound word with lisp-style-dashes"
-  (mapconcat 'downcase (snakehump--split-name compound-word) "-"))
-
-(defun snakehump-colonize (compound-word)
-  "Format compound word Double::Colon::Separated"
-  (mapconcat 'capitalize (snakehump--split-name compound-word) "::"))
-
 
 ;;; Format predicate functions
-(defun snakehump-snake-p (s)
-  "True if string is a snake_cased compound word"
-  (and (string-match-p "^[a-z]+\\(?:_[a-z]+\\)+$" s) t))
+(defmacro snakehump--fmt-p (name regexp)
+  `(defun ,(intern (concat "snakehump-" (symbol-name name) "-p"))
+       (compound-word)
+     ,(concat "True if string is a " (symbol-name name) "-style compound word")
+     (let ((case-fold-search nil))
+       (and (string-match-p ,regexp compound-word) t))))
 
-(defun snakehump-dashed-p (s)
-  "True if string is a lisp-style-dashed compound word"
-  (and (string-match-p "^[a-z]+\\(?:-[a-z]+\\)+$" s) t))
-
-(defun snakehump-coloned-p (s)
-  "True if string is a Double::Colon::Separated compound word"
-  (and (string-match-p "^\\(?:[A-Za-z]+::\\)+[A-Za-z]+$" s) t))
-
-(defun snakehump-camel-p (s)
-  "True if string is a CamelCased compound word"
-  (let ((case-fold-search nil))
-    (and (string-match-p "^[A-Z][a-z]+\\(?:[A-Z][a-z]+\\)*[A-Z][a-z]*$" s) t)))
-
-(defun snakehump-dromedar-p (s)
-  "True if string is a dromedarCased compound word"
-  (let ((case-fold-search nil))
-    (and (string-match-p "^[a-z]+\\(?:[A-Z][a-z]+\\)*[A-Z][a-z]*$" s) t)))
+(snakehump--fmt-p snake "^[a-z]+\\(?:_[a-z]+\\)+$")
+(snakehump--fmt-p dash  "^[a-z]+\\(?:-[a-z]+\\)+$")
+(snakehump--fmt-p colon "^\\(?:[A-Za-z]+::\\)+[A-Za-z]+$")
+(snakehump--fmt-p camel "^[A-Z][a-z]+\\(?:[A-Z][a-z]+\\)*[A-Z][a-z]*$")
+(snakehump--fmt-p drom  "^[a-z]+\\(?:[A-Z][a-z]+\\)*[A-Z][a-z]*$")
 
 
 ;;; Symbol maps
-(setq
- snakehump-predicates
- '(
-   (snake     . snakehump-snake-p)
-   (dash      . snakehump-dashed-p)
-   (colon     . snakehump-coloned-p)
-   (camel     . snakehump-camel-p)
-   (drom      . snakehump-dromedar-p)
-   ))
-
-(setq
- snakehump-formats
- '(
-   (snake     . snakehump-snakecase)
-   (dash      . snakehump-dasherize)
-   (colon     . snakehump-colonize)
-   (camel     . snakehump-camelcase)
-   (drom      . snakehump-dromcase)
-   ))
-
-(setq snakehump-hump-cycle-default
-      '(snake dash drom camel colon))
+(setq snakehump-hump-all-formats '(snake dash drom camel colon))
 
 (defcustom snakehump-hump-cycle
-  '(snake dash drom camel colon)
+  snakehump-hump-all-formats
   "Order of formats for cycling humps"
   :group 'snakehump
   :safe t)
@@ -116,15 +83,16 @@
   "Return a symbol denoting current format"
   (cond
    ((snakehump-snake-p    compound-word) 'snake)
-   ((snakehump-dashed-p   compound-word) 'dash)
+   ((snakehump-dash-p     compound-word) 'dash)
    ((snakehump-camel-p    compound-word) 'camel)
-   ((snakehump-coloned-p  compound-word) 'colon)
-   ((snakehump-dromedar-p compound-word) 'drom)
+   ((snakehump-colon-p    compound-word) 'colon)
+   ((snakehump-drom-p     compound-word) 'drom)
    (t                                    nil)))
 
 (defun snakehump-format (compound-word format)
   "Format a compound word according to format symbol"
-  (apply (cdr (assoc format snakehump-formats)) (list compound-word)))
+  (apply (intern (concat "snakehump-" (symbol-name format)))
+	 (list compound-word)))
 
 
 ;;; Cycle as list, for customizability.
@@ -191,8 +159,7 @@
          (end (and (skip-chars-forward  "[:alnum:]:_-") (point)))
          (txt (buffer-substring-no-properties beg end))
          (cml (snakehump-prev txt)) )
-    (if cml (progn (delete-region beg end) (insert cml))) ))
-
+    (when cml (delete-region beg end) (insert cml)) ))
 
 ;; (global-set-key (kbd "s-s") 'snakehump-next-at-point)
 ;; (global-set-key (kbd "C-s-s") 'snakehump-prev-at-point)
