@@ -21,8 +21,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-
-;;; Splitting utility
+
 (defun snakehump--split-name (compound-word)
   (split-string
    (let ((case-fold-search nil))
@@ -31,8 +30,6 @@
 				compound-word)))
    "[^A-Za-z0-9]+"))
 
-
-;;; Formatting functions
 (defmacro snakehump--fmt (name up sep)
   `(defun ,(intern (concat "snakehump-" (symbol-name name)))
        (compound-word)
@@ -41,19 +38,6 @@
       ',(if up 'capitalize 'downcase)
       (snakehump--split-name compound-word) ,sep)))
 
-(snakehump--fmt camel t   "")
-(snakehump--fmt snake nil "_")
-(snakehump--fmt dash  nil "-")
-(snakehump--fmt colon t   "::")
-
-(defun snakehump-drom (compound-word)
-  "Format compound word like CamelCase but with leading-lowercase"
-  (let ((frags (snakehump--split-name compound-word)))
-    (concat (downcase (car frags))
-            (mapconcat 'capitalize (cdr frags) ""))))
-
-
-;;; Format predicate functions
 (defmacro snakehump--fmt-p (name regexp)
   `(defun ,(intern (concat "snakehump-" (symbol-name name) "-p"))
        (compound-word)
@@ -61,33 +45,50 @@
      (let ((case-fold-search nil))
        (and (string-match-p ,regexp compound-word) t))))
 
-(snakehump--fmt-p snake "^[a-z]+\\(?:_[a-z]+\\)+$")
-(snakehump--fmt-p dash  "^[a-z]+\\(?:-[a-z]+\\)+$")
-(snakehump--fmt-p colon "^\\(?:[A-Za-z]+::\\)+[A-Za-z]+$")
-(snakehump--fmt-p camel "^[A-Z][a-z]+\\(?:[A-Z][a-z]+\\)*[A-Z][a-z]*$")
-(snakehump--fmt-p drom  "^[a-z]+\\(?:[A-Z][a-z]+\\)*[A-Z][a-z]*$")
+;; Because it's easier to do this separately
+(defun snakehump-drom (compound-word)
+  "Format compound word like CamelCase but with leading-lowercase"
+  (let ((frags (snakehump--split-name compound-word)))
+    (concat (downcase (car frags))
+            (mapconcat 'capitalize (cdr frags) ""))))
 
-
-;;; Symbol maps
-(setq snakehump-hump-all-formats '(snake dash drom camel colon))
+(setq
+ snakehump--wip
+ '(
+   ;;n makefmt up sep  regexp
+   (camel t   t   ""   "^[A-Z][a-z]+\\(?:[A-Z][a-z]+\\)*[A-Z][a-z]*$")
+   (snake t   nil "_"  "^[a-z]+\\(?:_[a-z]+\\)+$")
+   (dash  t   nil "-"  "^[a-z]+\\(?:-[a-z]+\\)+$")
+   (colon t   t   "::" "^\\(?:[A-Za-z]+::\\)+[A-Za-z]+$")
+   (drom  nil nil ""   "^[a-z]+\\(?:[A-Z][a-z]+\\)*[A-Z][a-z]*$")
+   ))
+
+
+(dolist (def snakehump--wip)  ; define the predicates and formatters
+  (apply  ; dolist-apply-lambda because I can't find destructuring dolist
+   (lambda (name makefmt capitalize separator regexp)
+     (eval `(snakehump--fmt-p ,name ,regexp))
+     (if makefmt
+	 (eval `(snakehump--fmt ,name ,capitalize ,separator)))
+     )
+   def))
+
+
+(setq snakehump-all-formats (mapcar 'car snakehump--wip))
 
 (defcustom snakehump-hump-cycle
-  snakehump-hump-all-formats
+  snakehump-all-formats
   "Order of formats for cycling humps"
   :group 'snakehump
   :safe t)
 
-
-;;; Basic query and format functions
 (defun snakehump-current-format (compound-word)
   "Return a symbol denoting current format"
-  (cond
-   ((snakehump-snake-p    compound-word) 'snake)
-   ((snakehump-dash-p     compound-word) 'dash)
-   ((snakehump-camel-p    compound-word) 'camel)
-   ((snakehump-colon-p    compound-word) 'colon)
-   ((snakehump-drom-p     compound-word) 'drom)
-   (t                                    nil)))
+  (catch 'found
+    (dolist (name snakehump-all-formats found)
+      (if (apply (intern (concat "snakehump-" (symbol-name name) "-p"))
+		 (list compound-word))
+	  (throw 'found name)))))
 
 (defun snakehump-format (compound-word format)
   "Format a compound word according to format symbol"
