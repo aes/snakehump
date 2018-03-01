@@ -85,7 +85,7 @@
 (defun snakehump-current-format (compound-word)
   "Return a symbol denoting current format"
   (catch 'found
-    (dolist (name snakehump-all-formats found)
+    (dolist (name snakehump-all-formats)
       (if (apply (intern (concat "snakehump-" (symbol-name name) "-p"))
 		 (list compound-word))
 	  (throw 'found name)))))
