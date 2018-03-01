@@ -30,12 +30,12 @@
 				compound-word)))
    "[^A-Za-z0-9]+"))
 
-(defmacro snakehump--fmt (name up sep)
+(defmacro snakehump--fmt (name case sep)
   `(defun ,(intern (concat "snakehump-" (symbol-name name)))
        (compound-word)
      ,(concat "Format compound word with " (symbol-name name))
      (mapconcat
-      ',(if up 'capitalize 'downcase)
+      ,case
       (snakehump--split-name compound-word) ,sep)))
 
 (defmacro snakehump--fmt-p (name regexp)
@@ -55,12 +55,13 @@
 (setq
  snakehump--wip
  '(
-   ;;n makefmt up sep  regexp
-   (camel t   t   ""   "^[A-Z][a-z]+\\(?:[A-Z][a-z]+\\)*[A-Z][a-z]*$")
-   (snake t   nil "_"  "^[a-z]+\\(?:_[a-z]+\\)+$")
-   (dash  t   nil "-"  "^[a-z]+\\(?:-[a-z]+\\)+$")
-   (colon t   t   "::" "^\\(?:[A-Za-z]+::\\)+[A-Za-z]+$")
-   (drom  nil nil ""   "^[a-z]+\\(?:[A-Z][a-z]+\\)*[A-Z][a-z]*$")
+   ;;n makefmt up         sep  regexp
+   (camel t   #'capitalize ""   "^[A-Z][a-z]+\\(?:[A-Z][a-z]+\\)*[A-Z][a-z]*$")
+   (snake t   #'downcase   "_"  "^[a-z]+\\(?:_[a-z]+\\)+$")
+   (dash  t   #'downcase   "-"  "^[a-z]+\\(?:-[a-z]+\\)+$")
+   (loud  t   #'upcase     "_"  "^[A-Z]+\\(?:_[A-Z]+\\)*$")
+   (colon t   #'capitalize "::" "^\\(?:[A-Za-z]+::\\)+[A-Za-z]+$")
+   (drom  nil #'downcase   ""   "^[a-z]+\\(?:[A-Z][a-z]+\\)*[A-Z][a-z]*$")
    ))
 
 
