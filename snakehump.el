@@ -59,6 +59,7 @@
    (camel t   #'capitalize ""   "^[A-Z][a-z]+\\(?:[A-Z][a-z]+\\)*[A-Z][a-z]*$")
    (snake t   #'downcase   "_"  "^[a-z]+\\(?:_[a-z]+\\)+$")
    (dash  t   #'downcase   "-"  "^[a-z]+\\(?:-[a-z]+\\)+$")
+   (loud  t   #'upcase     "_"  "^[A-Z]+\\(?:_[A-Z]+\\)*$")
    (colon t   #'capitalize "::" "^\\(?:[A-Za-z]+::\\)+[A-Za-z]+$")
    (drom  nil #'downcase   ""   "^[a-z]+\\(?:[A-Z][a-z]+\\)*[A-Z][a-z]*$")
    ))
