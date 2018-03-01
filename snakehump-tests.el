@@ -145,3 +145,8 @@
     (should (equal (snakehump-next "foo_bar_baz"  ) "FooBarBaz"))
     )
 )
+
+(ert-deftest snakehump-unrecognized-formats-return-identity-t ()
+  (should (equal (snakehump-next "42") "42"))
+  (should (equal (snakehump-next "A42") "A42"))
+)
