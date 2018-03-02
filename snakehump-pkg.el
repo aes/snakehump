@@ -1,2 +1,2 @@
-(define-package "snakehump" "0.1.1"
+(define-package "snakehump" "0.3.1"
   "Convert between compound word conventions")
