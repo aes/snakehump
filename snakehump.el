@@ -1,8 +1,8 @@
 ;;; snakehump.el --- Convert between compound word conventions
 
-;; Copyright (C) 2013 Anders Eurenius <aes@spotify.com>
+;; Copyright (C) 2013-2018 Anders Eurenius <aes@eurenius.eu>
 
-;; Author: Anders Eurenius <aes@spotify.com>
+;; Author: Anders Eurenius <aes@eurenius.eu>
 ;; Created: 2014-07-05
 ;; Keywords: formatting camelcase snakecase
 ;; Version: 0.3.0
